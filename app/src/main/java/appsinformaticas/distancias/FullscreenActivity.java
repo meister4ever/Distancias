@@ -1,6 +1,7 @@
 package appsinformaticas.distancias;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -36,7 +37,7 @@ public class FullscreenActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private Button btnCapturePicture;
     private String mImageFileLocation = "";
-    private ImageView result;
+    ImageView result;
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
@@ -155,7 +156,7 @@ public class FullscreenActivity extends AppCompatActivity {
     File createImageFile() throws IOException{
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "IMAGE_" + timeStamp + "_";
-        File image = File.createTempFile(imageFileName,".jpg",getApplicationContext().getFilesDir());
+        File image = File.createTempFile(imageFileName,".jpg",getBaseContext().getCacheDir());
         mImageFileLocation = image.getAbsolutePath();
         return image;
     }
