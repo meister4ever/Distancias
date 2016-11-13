@@ -3,7 +3,10 @@ package appsinformaticas.distancias;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.Image;
+import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +16,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -26,6 +35,8 @@ public class FullscreenActivity extends AppCompatActivity {
     private static final boolean AUTO_HIDE = true;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private Button btnCapturePicture;
+    private String mImageFileLocation = "";
+    private ImageView result;
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
@@ -92,7 +103,7 @@ public class FullscreenActivity extends AppCompatActivity {
     };
 
 
-    ImageView result;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,18 +133,31 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void dispatchTakePictureIntent(View view) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        File photoFile = null;
+        try{
+            photoFile = createImageFile();
         }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            result.setImageBitmap(imageBitmap);
+            Bitmap photoCapturedBitmap = BitmapFactory.decodeFile(mImageFileLocation);
+            result.setImageBitmap(photoCapturedBitmap);
         }
+    }
+
+    File createImageFile() throws IOException{
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "IMAGE_" + timeStamp + "_";
+        File image = File.createTempFile(imageFileName,".jpg",getApplicationContext().getFilesDir());
+        mImageFileLocation = image.getAbsolutePath();
+        return image;
     }
 
     @Override
