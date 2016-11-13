@@ -38,6 +38,9 @@ public class FullscreenActivity extends AppCompatActivity {
     private Button btnCapturePicture;
     private String mImageFileLocation = "";
     ImageView result;
+    ImageView result2;
+    private int imageCount;
+
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
@@ -110,9 +113,10 @@ public class FullscreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_fullscreen);
-
+        imageCount = 0;
         btnCapturePicture = (Button)findViewById(R.id.camera);
         result = (ImageView)findViewById(R.id.imageView);
+        result2= (ImageView)findViewById(R.id.imageView2);
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
@@ -134,6 +138,8 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void dispatchTakePictureIntent(View view) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        /*
         File photoFile = null;
         try{
             photoFile = createImageFile();
@@ -142,21 +148,33 @@ public class FullscreenActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+        */
         startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bitmap photoCapturedBitmap = BitmapFactory.decodeFile(mImageFileLocation);
-            result.setImageBitmap(photoCapturedBitmap);
+            if(imageCount==0) {
+                imageCount++;
+                Bundle extras = data.getExtras();
+                Bitmap photoCapturedBitmap = (Bitmap) extras.get("data");
+                //Bitmap photoCapturedBitmap = BitmapFactory.decodeFile(mImageFileLocation);
+                result.setImageBitmap(photoCapturedBitmap);
+            }
+            else{
+                Bundle extras = data.getExtras();
+                Bitmap photoCapturedBitmap = (Bitmap) extras.get("data");
+                //Bitmap photoCapturedBitmap = BitmapFactory.decodeFile(mImageFileLocation);
+                result2.setImageBitmap(photoCapturedBitmap);
+            }
         }
     }
 
     File createImageFile() throws IOException{
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "IMAGE_" + timeStamp + "_";
-        File image = File.createTempFile(imageFileName,".jpg",getBaseContext().getCacheDir());
+        File image = File.createTempFile(imageFileName,".jpg",getApplicationContext().getCacheDir());
         mImageFileLocation = image.getAbsolutePath();
         return image;
     }
