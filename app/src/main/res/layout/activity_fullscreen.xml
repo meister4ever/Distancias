@@ -28,20 +28,12 @@
             tools:ignore="UselessParent">
 
             <Button
-                android:text="Button"
+                android:text="Capturar Imagen"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/button4"
+                android:id="@+id/camera"
                 android:layout_weight="1"
                 android:onClick="dispatchTakePictureIntent" />
-
-            <Button
-                android:id="@+id/camera"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Capture Image" />
 
         </LinearLayout>
 
@@ -57,9 +49,9 @@
             android:textStyle="bold" />
 
         <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="391dp"
-            app:srcCompat="@android:drawable/alert_light_frame"
+            android:layout_width="403dp"
+            android:layout_height="440dp"
+            app:srcCompat="@mipmap/ic_launcher"
             android:id="@+id/imageView" />
 
     </FrameLayout>

@@ -25,6 +25,7 @@ public class FullscreenActivity extends AppCompatActivity {
      */
     private static final boolean AUTO_HIDE = true;
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    private Button btnCapturePicture;
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
@@ -98,7 +99,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_fullscreen);
 
-        Button click = (Button)findViewById(R.id.camera);
+        btnCapturePicture = (Button)findViewById(R.id.camera);
         result = (ImageView)findViewById(R.id.imageView);
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
@@ -118,7 +119,8 @@ public class FullscreenActivity extends AppCompatActivity {
         // while interacting with the UI.
         findViewById(R.id.camera).setOnTouchListener(mDelayHideTouchListener);
     }
-    public void dispatchTakePictureIntent() {
+
+    public void dispatchTakePictureIntent(View view) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
