@@ -25,16 +25,16 @@
             android:background="@color/black_overlay"
             android:orientation="horizontal"
             tools:ignore="UselessParent"
-            android:layout_width="379dp">
+            android:layout_width="317dp">
 
             <TextView
                 android:text="TextView"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_width="161dp"
+                android:layout_height="34dp"
                 android:id="@+id/textView"
-                android:layout_weight="1"
                 android:textColor="@android:color/background_light"
-                android:textSize="30sp" />
+                android:textSize="30sp"
+                android:textAlignment="textEnd" />
 
             <Button
                 android:text="Medir Distancia"
