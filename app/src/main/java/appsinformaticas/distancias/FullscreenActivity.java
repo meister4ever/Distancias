@@ -4,27 +4,30 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.Image;
-import android.net.Uri;
-import android.os.Environment;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
-/**
+import static appsinformaticas.distancias.R.id.camera;
+import static appsinformaticas.distancias.R.id.imageView;
+
+ /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
@@ -39,8 +42,12 @@ public class FullscreenActivity extends AppCompatActivity {
     private String mImageFileLocation = "";
     ImageView result;
     ImageView result2;
+    TextView text;
     private int imageCount;
-
+    private int X=0,Y=0;
+    private float[] base;
+    private float focalLength;
+    private float p=1;
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
@@ -85,56 +92,40 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     };
     private boolean mVisible;
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
-        }
-    };
-    /**
-     * Touch listener to use for in-layout UI controls to delay hiding the
-     * system UI. This is to prevent the jarring behavior of controls going away
-     * while interacting with activity UI.
-     */
-    private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View view, MotionEvent motionEvent) {
-            if (AUTO_HIDE) {
-                delayedHide(AUTO_HIDE_DELAY_MILLIS);
-            }
-            return false;
-        }
-    };
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        text = (TextView)findViewById(R.id.textView);
         setContentView(R.layout.activity_fullscreen);
+        base = new float[]{500, 0, 0};
         imageCount = 0;
-        btnCapturePicture = (Button)findViewById(R.id.camera);
-        result = (ImageView)findViewById(R.id.imageView);
+        btnCapturePicture = (Button)findViewById(camera);
+        result = (ImageView)findViewById(imageView);
         result2= (ImageView)findViewById(R.id.imageView2);
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
-        mContentView = findViewById(R.id.fullscreen_content);
 
-
-        // Set up the user interaction to manually show or hide the system UI.
-        mContentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggle();
-            }
-        });
-
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
-        findViewById(R.id.camera).setOnTouchListener(mDelayHideTouchListener);
     }
+
+    public float getCameraFocalLength(final int cameraId) {
+        Context context = getApplicationContext();
+        try {
+            CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+            String[] cameraIds = manager.getCameraIdList();
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraIds[cameraId]);
+            return characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)[0];
+        } catch (CameraAccessException e) {
+            // TODO handle error properly or pass it on
+            return 0;
+        }
+    }
+
+
+
+
+
 
     public void dispatchTakePictureIntent(View view) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -152,6 +143,29 @@ public class FullscreenActivity extends AppCompatActivity {
         startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
     }
 
+     public String getDistance(){
+
+         int W,Z;
+
+         W= X - result.getWidth()/2;
+         Z = Y - result.getHeight()/2;
+
+         float focalLength = getCameraFocalLength(1);
+         Log.d("La distancia focal: ",String.valueOf(focalLength));
+
+         float t1 = (base[2] * W / p - base[1]) * focalLength;
+
+         float t2 = (- base[2] * W / p + base[0]) * focalLength;
+
+         float t3 = (base[1] * W - base[0] * Z) * focalLength / p;
+
+         float param = (base[0] + base[2] * t3 / t1 + base[1] * t2 / t1) / (W + t3 * focalLength / t1 + t2 / t1 * Z);
+
+         double distancia = param * focalLength * Math.sqrt((W/p) * (W/p) + (Z/p) * (Z/p) + 1);
+
+         return String.valueOf(distancia);
+     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -167,6 +181,21 @@ public class FullscreenActivity extends AppCompatActivity {
                 Bitmap photoCapturedBitmap = (Bitmap) extras.get("data");
                 //Bitmap photoCapturedBitmap = BitmapFactory.decodeFile(mImageFileLocation);
                 result2.setImageBitmap(photoCapturedBitmap);
+
+
+                result.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (event.getAction() == MotionEvent.ACTION_DOWN){
+
+                            //  textView.setText("Touch coordinates : " +String.valueOf(event.getX()) + "x" + String.valueOf(event.getY()));
+                            X = Integer.valueOf((int)event.getX());
+                            Y = Integer.valueOf((int)event.getY());
+                            text.setText(getDistance());
+                        }
+                        return true;
+                    }
+                });
             }
         }
     }
@@ -179,56 +208,4 @@ public class FullscreenActivity extends AppCompatActivity {
         return image;
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-
-        // Trigger the initial hide() shortly after the activity has been
-        // created, to briefly hint to the user that UI controls
-        // are available.
-        delayedHide(100);
-    }
-
-    private void toggle() {
-        if (mVisible) {
-            hide();
-        } else {
-            show();
-        }
-    }
-
-    private void hide() {
-        // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
-        mControlsView.setVisibility(View.GONE);
-        mVisible = false;
-
-        // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.removeCallbacks(mShowPart2Runnable);
-        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Show the system bar
-        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        mVisible = true;
-
-        // Schedule a runnable to display UI elements after a delay
-        mHideHandler.removeCallbacks(mHidePart2Runnable);
-        mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    /**
-     * Schedules a call to hide() in [delay] milliseconds, canceling any
-     * previously scheduled calls.
-     */
-    private void delayedHide(int delayMillis) {
-        mHideHandler.removeCallbacks(mHideRunnable);
-        mHideHandler.postDelayed(mHideRunnable, delayMillis);
-    }
 }
