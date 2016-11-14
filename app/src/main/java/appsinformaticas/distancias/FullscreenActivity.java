@@ -97,13 +97,13 @@ public class FullscreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        text = (TextView)findViewById(R.id.textView);
         setContentView(R.layout.activity_fullscreen);
-        base = new float[]{500, 0, 0};
+        base = new float[]{500, 1, 1};
         imageCount = 0;
         btnCapturePicture = (Button)findViewById(camera);
         result = (ImageView)findViewById(imageView);
         result2= (ImageView)findViewById(R.id.imageView2);
+        text = (TextView)findViewById(R.id.textView);
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
 
@@ -147,7 +147,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
          int W,Z;
 
-         W= X - result.getWidth()/2;
+         W = X - result.getWidth()/2;
          Z = Y - result.getHeight()/2;
 
          float focalLength = getCameraFocalLength(1);
@@ -164,6 +164,11 @@ public class FullscreenActivity extends AppCompatActivity {
          double distancia = param * focalLength * Math.sqrt((W/p) * (W/p) + (Z/p) * (Z/p) + 1);
 
          return String.valueOf(distancia);
+     }
+
+     public void visualTextComplete(View view){
+         String aString = getDistance();
+         text.setText(aString);
      }
 
     @Override
@@ -191,7 +196,6 @@ public class FullscreenActivity extends AppCompatActivity {
                             //  textView.setText("Touch coordinates : " +String.valueOf(event.getX()) + "x" + String.valueOf(event.getY()));
                             X = Integer.valueOf((int)event.getX());
                             Y = Integer.valueOf((int)event.getY());
-                            text.setText(getDistance());
                         }
                         return true;
                     }

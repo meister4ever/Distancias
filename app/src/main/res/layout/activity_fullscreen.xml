@@ -20,12 +20,12 @@
         <LinearLayout
             android:id="@+id/fullscreen_content_controls"
             style="?metaButtonBarStyle"
-            android:layout_height="wrap_content"
+            android:layout_height="65dp"
             android:layout_gravity="bottom|center_horizontal"
             android:background="@color/black_overlay"
             android:orientation="horizontal"
             tools:ignore="UselessParent"
-            android:layout_width="318dp">
+            android:layout_width="379dp">
 
             <TextView
                 android:text="TextView"
@@ -37,18 +37,26 @@
                 android:textSize="30sp" />
 
             <Button
+                android:text="Medir Distancia"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:id="@+id/distanceButton"
+                android:layout_weight="1.00"
+                android:onClick="visualTextComplete" />
+
+            <Button
                 android:text="Capturar Imagen"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:id="@+id/camera"
-                android:layout_weight="1"
+                android:layout_weight="1.00"
                 android:onClick="dispatchTakePictureIntent" />
 
         </LinearLayout>
 
         <ImageView
-            android:layout_width="347dp"
-            android:layout_height="292dp"
+            android:layout_width="326dp"
+            android:layout_height="190dp"
             app:srcCompat="@mipmap/ic_launcher"
             android:id="@+id/imageView"
             android:translationX="150dp" />
@@ -58,9 +66,6 @@
             android:layout_height="187dp"
             app:srcCompat="@mipmap/ic_launcher"
             android:id="@+id/imageView2" />
-
-
-
 
 
     </FrameLayout>
