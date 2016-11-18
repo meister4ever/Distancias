@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -12,7 +13,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -45,6 +48,7 @@ public class FullscreenActivity extends AppCompatActivity {
     TextView text;
     private int imageCount;
     private int X=0,Y=0;
+    private int X2=0,Y2=0;
     private float[] base;
     private float focalLength;
     private float p=1;
@@ -98,7 +102,7 @@ public class FullscreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_fullscreen);
-        base = new float[]{500, 1, 1};
+        base = new float[]{150, 1, 1};
         imageCount = 0;
         btnCapturePicture = (Button)findViewById(camera);
         result = (ImageView)findViewById(imageView);
@@ -144,15 +148,12 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
      public String getDistance(){
+        float W,Z,W2,Z2;
 
-         int W,Z;
 
-         W = X - result.getWidth()/2;
-         Z = Y - result.getHeight()/2;
 
-         float focalLength = getCameraFocalLength(1);
-         Log.d("La distancia focal: ",String.valueOf(focalLength));
-
+         float focalLength = 10*getCameraFocalLength(1);
+        /*
          float t1 = (base[2] * W / p - base[1]) * focalLength;
 
          float t2 = (- base[2] * W / p + base[0]) * focalLength;
@@ -162,13 +163,45 @@ public class FullscreenActivity extends AppCompatActivity {
          float param = (base[0] + base[2] * t3 / t1 + base[1] * t2 / t1) / (W + t3 * focalLength / t1 + t2 / t1 * Z);
 
          double distancia = param * focalLength * Math.sqrt((W/p) * (W/p) + (Z/p) * (Z/p) + 1);
+        */
+         float[] eventXY = new float[] {X, Y};
 
+         Matrix invertMatrix = new Matrix();
+         result.getImageMatrix().invert(invertMatrix);
+
+         invertMatrix.mapPoints(eventXY);
+
+         int x = Integer.valueOf((int)eventXY[0]);
+         int y = Integer.valueOf((int)eventXY[1]);
+
+         float[] event2XY = new float[] {X2, Y2};
+         Matrix invertMatrix2 = new Matrix();
+         result2.getImageMatrix().invert(invertMatrix2);
+
+         invertMatrix2.mapPoints(event2XY);
+
+         int x2 = Integer.valueOf((int)event2XY[0]);
+         int y2 = Integer.valueOf((int)event2XY[1]);
+
+         W = X - result.getWidth()/2;
+         Z = Y - result.getHeight()/2;
+         W2 =  X2 - result2.getWidth()/2;
+         Z2 = Y2 - result2.getHeight()/2;
+
+         double D = pxToMm(Math.abs(W),getApplicationContext()) + pxToMm(Math.abs(W2),getApplicationContext());
+         double distancia = (1.5*focalLength * base[0])/(double)D;
          return String.valueOf(distancia);
      }
 
      public void visualTextComplete(View view){
          String aString = getDistance();
          text.setText(aString);
+     }
+
+     public static float pxToMm(final float px, final Context context)
+     {
+         final DisplayMetrics dm = context.getResources().getDisplayMetrics();
+         return px / TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_MM, 1, dm);
      }
 
     @Override
@@ -180,13 +213,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 Bitmap photoCapturedBitmap = (Bitmap) extras.get("data");
                 //Bitmap photoCapturedBitmap = BitmapFactory.decodeFile(mImageFileLocation);
                 result.setImageBitmap(photoCapturedBitmap);
-            }
-            else{
-                Bundle extras = data.getExtras();
-                Bitmap photoCapturedBitmap = (Bitmap) extras.get("data");
-                //Bitmap photoCapturedBitmap = BitmapFactory.decodeFile(mImageFileLocation);
-                result2.setImageBitmap(photoCapturedBitmap);
-
 
                 result.setOnTouchListener(new View.OnTouchListener() {
                     @Override
@@ -200,6 +226,26 @@ public class FullscreenActivity extends AppCompatActivity {
                         return true;
                     }
                 });
+            }
+            else{
+                Bundle extras = data.getExtras();
+                Bitmap photoCapturedBitmap = (Bitmap) extras.get("data");
+                //Bitmap photoCapturedBitmap = BitmapFactory.decodeFile(mImageFileLocation);
+                result2.setImageBitmap(photoCapturedBitmap);
+
+                result2.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (event.getAction() == MotionEvent.ACTION_DOWN){
+
+                            //  textView.setText("Touch coordinates : " +String.valueOf(event.getX()) + "x" + String.valueOf(event.getY()));
+                            X2 = Integer.valueOf((int)event.getX());
+                            Y2 = Integer.valueOf((int)event.getY());
+                        }
+                        return true;
+                    }
+                });
+
             }
         }
     }
