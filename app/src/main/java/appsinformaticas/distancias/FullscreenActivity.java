@@ -3,8 +3,11 @@ package appsinformaticas.distancias;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -14,7 +17,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
-import android.util.Log;
+import android.graphics.Color;
+
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -47,11 +51,32 @@ public class FullscreenActivity extends AppCompatActivity {
     ImageView result2;
     TextView text;
     private int imageCount;
+     private int amountOfSamples = 1000;
     private int X=0,Y=0;
     private int X2=0,Y2=0;
     private float[] base;
     private float focalLength;
     private float p=1;
+    private float[] inputArray;
+     static double PI = 3.1415926535897932384626433832795;
+     static double gravity = 9806.65;
+
+     double Accel2mms(double accel, double freq){
+         double result = 0;
+         result = (gravity*accel)/(2*PI*freq);
+         return result;
+     }
+
+     private float resultingArray(){
+         for(int i = 0; i < amountOfSamples; i++){
+             if(inputArray[i] < 0){
+                 inputArray[i] = inputArray[i] - (inputArray[i]*2);
+             }
+         }
+         int sum = 0;
+         for (float d : inputArray) sum += d;
+         return sum / inputArray.length;
+     }
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
@@ -127,10 +152,6 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
 
-
-
-
-
     public void dispatchTakePictureIntent(View view) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -148,9 +169,8 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
      public String getDistance(){
+
         float W,Z,W2,Z2;
-
-
 
          float focalLength = 10*getCameraFocalLength(1);
         /*
@@ -164,6 +184,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
          double distancia = param * focalLength * Math.sqrt((W/p) * (W/p) + (Z/p) * (Z/p) + 1);
         */
+         /*
          float[] eventXY = new float[] {X, Y};
 
          Matrix invertMatrix = new Matrix();
@@ -180,18 +201,20 @@ public class FullscreenActivity extends AppCompatActivity {
 
          invertMatrix2.mapPoints(event2XY);
 
-         int x2 = Integer.valueOf((int)event2XY[0]);
-         int y2 = Integer.valueOf((int)event2XY[1]);
-
+         //int x2 = Integer.valueOf((int)event2XY[0]);
+         //int y2 = Integer.valueOf((int)event2XY[1]);
+*/
          W = X - result.getWidth()/2;
-         Z = Y - result.getHeight()/2;
+         //Z = Y - result.getHeight()/2;
          W2 =  X2 - result2.getWidth()/2;
-         Z2 = Y2 - result2.getHeight()/2;
+         //Z2 = Y2 - result2.getHeight()/2;
 
          double D = pxToMm(Math.abs(W),getApplicationContext()) + pxToMm(Math.abs(W2),getApplicationContext());
-         double distancia = (1.5*focalLength * base[0])/(double)D;
+         double distancia = (focalLength * base[0])/D;
          return String.valueOf(distancia);
      }
+
+
 
      public void visualTextComplete(View view){
          String aString = getDistance();
@@ -222,6 +245,11 @@ public class FullscreenActivity extends AppCompatActivity {
                             //  textView.setText("Touch coordinates : " +String.valueOf(event.getX()) + "x" + String.valueOf(event.getY()));
                             X = Integer.valueOf((int)event.getX());
                             Y = Integer.valueOf((int)event.getY());
+
+                            result.buildDrawingCache();
+                            Bitmap newBmp = result.getDrawingCache();
+                            newBmp.setPixel(X, Y, Color.rgb(45, 127, 0));
+                            result.setImageBitmap(newBmp);
                         }
                         return true;
                     }
@@ -241,6 +269,12 @@ public class FullscreenActivity extends AppCompatActivity {
                             //  textView.setText("Touch coordinates : " +String.valueOf(event.getX()) + "x" + String.valueOf(event.getY()));
                             X2 = Integer.valueOf((int)event.getX());
                             Y2 = Integer.valueOf((int)event.getY());
+                            Bitmap bitmap = ((BitmapDrawable)result2.getDrawable()).getBitmap();
+
+                            result2.buildDrawingCache();
+                            Bitmap newBmp = result2.getDrawingCache();
+                            newBmp.setPixel(X2, Y2, Color.rgb(45, 127, 0));
+                            result2.setImageBitmap(newBmp);
                         }
                         return true;
                     }
